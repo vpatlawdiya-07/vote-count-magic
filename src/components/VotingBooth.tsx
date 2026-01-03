@@ -27,6 +27,8 @@ export const VotingBooth = ({ voter, onVoteComplete }: VotingBoothProps) => {
     setIsConfirmOpen(true);
   };
 
+  const [showVoteReceipt, setShowVoteReceipt] = useState(false);
+
   const confirmVote = async () => {
     if (!selectedCandidate) return;
 
@@ -39,6 +41,8 @@ export const VotingBooth = ({ voter, onVoteComplete }: VotingBoothProps) => {
 
     if (result.success && result.vote) {
       setSubmittedVote(result.vote);
+      setIsConfirmOpen(false);
+      setShowVoteReceipt(true);
       toast.success('Vote cast successfully!', {
         description: 'Your vote has been securely recorded.',
       });
@@ -47,10 +51,10 @@ export const VotingBooth = ({ voter, onVoteComplete }: VotingBoothProps) => {
       toast.error('Failed to cast vote', {
         description: result.error,
       });
+      setIsConfirmOpen(false);
     }
 
     setIsSubmitting(false);
-    setIsConfirmOpen(false);
   };
 
   const copyVoteId = () => {
@@ -60,7 +64,67 @@ export const VotingBooth = ({ voter, onVoteComplete }: VotingBoothProps) => {
     }
   };
 
-  if (submittedVote) {
+  // Vote Receipt Dialog shown after successful vote
+  const VoteReceiptDialog = () => (
+    <Dialog open={showVoteReceipt} onOpenChange={setShowVoteReceipt}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader className="text-center pb-4">
+          <div className="mx-auto w-20 h-20 rounded-full gradient-verification flex items-center justify-center mb-4 animate-scale-in">
+            <CheckCircle2 className="w-10 h-10 text-success-foreground" />
+          </div>
+          <DialogTitle className="font-display text-2xl text-success">Vote Successfully Cast!</DialogTitle>
+          <DialogDescription>
+            Your vote has been securely recorded and encrypted.
+          </DialogDescription>
+        </DialogHeader>
+
+        {submittedVote && (
+          <div className="space-y-4">
+            <div className="bg-success/10 border border-success/20 rounded-xl p-5">
+              <p className="text-sm text-muted-foreground mb-2 text-center">Your Vote Verification ID</p>
+              <div className="flex items-center justify-center gap-2">
+                <code className="text-sm md:text-base font-mono bg-background px-4 py-3 rounded-lg border border-success/30 text-foreground">
+                  {submittedVote.id}
+                </code>
+                <Button variant="ghost" size="icon" onClick={copyVoteId} className="text-success hover:text-success">
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3 text-center">
+                Save this ID to verify your vote was counted correctly
+              </p>
+            </div>
+
+            <div className="bg-muted/50 rounded-xl p-4 space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Digital Signature:</span>
+                <code className="font-mono text-xs bg-background px-2 py-1 rounded">{submittedVote.signature}</code>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Timestamp:</span>
+                <span className="text-foreground">{new Date(submittedVote.timestamp).toLocaleString()}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-sm text-success pt-2">
+              <Shield className="w-4 h-4" />
+              <span>Your vote is encrypted and secure</span>
+            </div>
+
+            <Button 
+              variant="vote" 
+              className="w-full mt-4" 
+              onClick={() => setShowVoteReceipt(false)}
+            >
+              View Election Results
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+
+  if (submittedVote && !showVoteReceipt) {
     return (
       <section className="py-20 px-4">
         <div className="container max-w-2xl mx-auto">
@@ -98,6 +162,7 @@ export const VotingBooth = ({ voter, onVoteComplete }: VotingBoothProps) => {
             </div>
           </div>
         </div>
+        <VoteReceiptDialog />
       </section>
     );
   }
@@ -210,6 +275,8 @@ export const VotingBooth = ({ voter, onVoteComplete }: VotingBoothProps) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <VoteReceiptDialog />
     </section>
   );
 };
