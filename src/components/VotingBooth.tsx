@@ -4,7 +4,9 @@ import { Candidate, Voter, Vote } from '@/types/voting';
 import { CandidateCard } from './CandidateCard';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Vote as VoteIcon, AlertTriangle, CheckCircle2, Shield, Copy } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Vote as VoteIcon, AlertTriangle, CheckCircle2, Shield, Copy, Download, Mail, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface VotingBoothProps {
@@ -17,6 +19,9 @@ export const VotingBooth = ({ voter, onVoteComplete }: VotingBoothProps) => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedVote, setSubmittedVote] = useState<Vote | null>(null);
+  const [showVoteReceipt, setShowVoteReceipt] = useState(false);
+  const [emailAddress, setEmailAddress] = useState(voter.email);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   const handleCandidateSelect = (candidate: Candidate) => {
     setSelectedCandidate(candidate);
@@ -26,8 +31,6 @@ export const VotingBooth = ({ voter, onVoteComplete }: VotingBoothProps) => {
     if (!selectedCandidate) return;
     setIsConfirmOpen(true);
   };
-
-  const [showVoteReceipt, setShowVoteReceipt] = useState(false);
 
   const confirmVote = async () => {
     if (!selectedCandidate) return;
@@ -61,6 +64,104 @@ export const VotingBooth = ({ voter, onVoteComplete }: VotingBoothProps) => {
     if (submittedVote) {
       navigator.clipboard.writeText(submittedVote.id);
       toast.success('Vote ID copied to clipboard');
+    }
+  };
+
+  const getVotedCandidate = () => {
+    if (!submittedVote) return null;
+    return sampleCandidates.find(c => c.id === submittedVote.candidateId);
+  };
+
+  const downloadReceipt = () => {
+    if (!submittedVote) return;
+    
+    const votedCandidate = getVotedCandidate();
+    const formattedDate = new Date(submittedVote.timestamp).toLocaleString();
+    
+    const receiptContent = `
+╔════════════════════════════════════════════════════════════╗
+║                    VOTE RECEIPT                            ║
+║                    VoteSecure™                             ║
+╠════════════════════════════════════════════════════════════╣
+
+  ELECTION: ${sampleElection.title}
+  
+  VOTER: ${voter.name}
+  EMAIL: ${voter.email}
+  
+────────────────────────────────────────────────────────────
+  
+  VOTE VERIFICATION ID:
+  ${submittedVote.id}
+  
+────────────────────────────────────────────────────────────
+  
+  CANDIDATE: ${votedCandidate?.name || 'Unknown'}
+  PARTY: ${votedCandidate?.party || 'Unknown'}
+  
+  TIMESTAMP: ${formattedDate}
+  DIGITAL SIGNATURE: ${submittedVote.signature}
+  
+────────────────────────────────────────────────────────────
+
+  🔒 This vote has been encrypted and securely recorded.
+  
+  Use your Verification ID to confirm your vote was 
+  counted correctly in the election results.
+
+╚════════════════════════════════════════════════════════════╝
+    `.trim();
+
+    const blob = new Blob([receiptContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vote-receipt-${submittedVote.id}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Receipt downloaded successfully');
+  };
+
+  const sendEmailReceipt = async () => {
+    if (!submittedVote || !emailAddress) return;
+    
+    const votedCandidate = getVotedCandidate();
+    if (!votedCandidate) return;
+
+    setIsSendingEmail(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('send-vote-receipt', {
+        body: {
+          email: emailAddress,
+          voterName: voter.name,
+          voteId: submittedVote.id,
+          signature: submittedVote.signature,
+          timestamp: submittedVote.timestamp,
+          candidateName: votedCandidate.name,
+          electionTitle: sampleElection.title,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success('Receipt sent to your email!', {
+          description: `Check ${emailAddress} for your vote receipt.`,
+        });
+      } else {
+        throw new Error(data?.error || 'Failed to send email');
+      }
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      toast.error('Failed to send email', {
+        description: error.message || 'Please try again later.',
+      });
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -109,6 +210,46 @@ export const VotingBooth = ({ voter, onVoteComplete }: VotingBoothProps) => {
             <div className="flex items-center justify-center gap-2 text-sm text-success pt-2">
               <Shield className="w-4 h-4" />
               <span>Your vote is encrypted and secure</span>
+            </div>
+
+            {/* Download and Email Options */}
+            <div className="border-t border-border pt-4 mt-4 space-y-4">
+              <p className="text-sm text-muted-foreground text-center font-medium">Save your receipt for record keeping</p>
+              
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={downloadReceipt}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download Receipt
+              </Button>
+
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input 
+                    type="email"
+                    placeholder="Email address"
+                    value={emailAddress}
+                    onChange={(e) => setEmailAddress(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={sendEmailReceipt}
+                    disabled={isSendingEmail || !emailAddress}
+                  >
+                    {isSendingEmail ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Mail className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  Email your receipt for safekeeping
+                </p>
+              </div>
             </div>
 
             <Button 
