@@ -181,21 +181,6 @@ export const VotingBooth = ({ voter, onVoteComplete }: VotingBoothProps) => {
 
         {submittedVote && (
           <div className="space-y-4">
-            <div className="bg-success/10 border border-success/20 rounded-xl p-5">
-              <p className="text-sm text-muted-foreground mb-2 text-center">Your Vote Verification ID</p>
-              <div className="flex items-center justify-center gap-2">
-                <code className="text-sm md:text-base font-mono bg-background px-4 py-3 rounded-lg border border-success/30 text-foreground">
-                  {submittedVote.id}
-                </code>
-                <Button variant="ghost" size="icon" onClick={copyVoteId} className="text-success hover:text-success">
-                  <Copy className="w-4 h-4" />
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground mt-3 text-center">
-                Save this ID to verify your vote was counted correctly
-              </p>
-            </div>
-
             <div className="bg-muted/50 rounded-xl p-4 space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Digital Signature:</span>
@@ -250,6 +235,22 @@ export const VotingBooth = ({ voter, onVoteComplete }: VotingBoothProps) => {
                   Email your receipt for safekeeping
                 </p>
               </div>
+            </div>
+
+            {/* Vote Verification ID - Now at the bottom */}
+            <div className="bg-success/10 border border-success/20 rounded-xl p-5 mt-4">
+              <p className="text-sm text-muted-foreground mb-2 text-center">Your Vote Verification ID</p>
+              <div className="flex items-center justify-center gap-2">
+                <code className="text-sm md:text-base font-mono bg-background px-4 py-3 rounded-lg border border-success/30 text-foreground">
+                  {submittedVote.id}
+                </code>
+                <Button variant="ghost" size="icon" onClick={copyVoteId} className="text-success hover:text-success">
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3 text-center">
+                Save this ID to verify your vote was counted correctly
+              </p>
             </div>
 
             <Button 
