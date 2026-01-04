@@ -1,303 +1,439 @@
-VOTING SYSTEM
 
-A simple, extensible Voting System for casting and counting votes in elections. Supports optional user authentication, vote verification (receipts, audit trail), and demonstrates key programming concepts: file handling, collections, object-oriented design (OOP), and exception handling. This README covers project overview, features, architecture, tech stack, quick start, user guide, API endpoints, voting algorithms, project layout, database schema, screenshot descriptions, troubleshooting, production deployment, and sample data.
+Voting System — Cast & Count Votes (with Authentication & Verification)
 
 Project Overview
 
-This repository implements a voting platform that lets authorized users cast votes and administrators tally results. The system stores vote records persistently (file or database), issues verification receipts, and maintains an append-only audit trail to detect tampering. The design is modular and easy to extend (new voting methods, storage backends, or UI).
-
-Goals:
-
-• Provide a secure, traceable voting flow.
-
-• Demonstrate OOP, file handling, collections, and exception handling.
-
-• Be a learning foundation or baseline for production-grade systems.
+A secure, extensible voting platform for casting and counting votes in elections. Supports voter authentication, vote receipts (verification), and an append-only audit trail to detect tampering. Designed for small-to-medium elections (school, college, club) and as a learning foundation for more advanced systems.
 
 Key Features
 
-• Create and manage elections (single-choice by default; extendable).
+Core Features
 
-• Register voters and optionally authenticate them (passwords or tokens).
+• ✅ Create and manage elections (single-choice by default; extendable)
 
-• Cast votes with receipt-based verification.
+• ✅ Voter registration and authentication (password / token)
 
-• Append-only audit log with optional hash chaining for tamper-detection.
+• ✅ Cast votes with receipt-based verification
 
-• Tally results (real-time and end-of-election).
+• ✅ Append-only audit log with optional hash chaining
 
-• Pluggable persistence: JSON/CSV file storage or SQL DB.
+• ✅ Tally results (real-time and end-of-election)
 
-• Input validation and robust exception handling.
+• ✅ Export results and audit logs (CSV / JSON / PDF)
 
-• REST API and CLI examples included.
-ARCHITECTURE
+• ✅ Role-based access (admin vs voter)
 
-• Presentation: CLI or REST API (lightweight web server).
+• ✅ Responsive React UI + REST API
 
-• Service Layer: ElectionService, AuthService, TallyService—contains business rules and validation.
+Constraints Handled
 
-• Persistence Layer: FilePersistenceService (JSON/append-only logs) or DBPersistenceService (SQL).
+• ✅ No voter can vote more than once (configurable)
 
-• Models: Voter, Candidate, Election, Ballot, VoteRecord.
+• ✅ No double-counting or tampering (append-only audit + receipts)
 
-• Utilities: Crypto helpers (hash receipts), validators, file helpers, logging.
+• ✅ Voting windows enforced (start/end times)
 
-Separation of concerns enables easy testing and swapping of storage backends.
-User Guide (high level)
+• ✅ Ballot validation (candidate IDs, allowed choices)
 
-• Admins:
+• ✅ Configurable election types (anonymous vs identified)
 
-   • Create election: define name, type (single/irv), candidate list, start/end times.
+Architecture
 
-   • Add or remove candidates (before election opens).
+Frontend (React)
 
-   • Tally results once election is closed.
+• Dashboard | Elections | Voters | Cast Vote | Results | Audit Viewer
 
-• Voters:
+HTTP/REST API
 
-   • Register (if required) and authenticate.
+Backend (Spring Boot)
 
-    • Cast vote during election window.
+• Controllers → Services → Repositories
 
-   • Receive a receipt (hash) to verify vote was recorded.
+• CRUD operations
 
-• Verification:
+• Authentication & authorization
 
-  • Voter checks receipt hash against the audit log endpoint to confirm presence.
-    API Endpoints
+• Vote recording + receipt generation
 
-All endpoints respond JSON and use Authorization: Bearer <token> when required.
+• Audit log (append-only) and optional hash chaining
 
-• POST /api/v1/auth/register
+• Tallying / reporting
 
-• Request: { "voter_id": "1001", "name":"John", "password":"pass" }
+• Export endpoints (CSV/PDF)
 
-• Response: { "status": "registered", "voter_id": "1001" }
+JDBC
 
-• POST /api/v1/auth/login
+PostgreSQL Database
 
-• Request: { "voter_id":"1001", "password":"pass" }
+• voters | elections | candidates | votes | audit_log
 
-• Response: { "token": "<jwt>" }
+Technology Stack
 
-• POST /api/v1/elections
+Backend
 
-• Auth: admin
+• Java 17
 
-• Request: { "id":"school-2026", "name":"School Board 2026", "type":"single", "starts":"2026-04-01T00:00:00Z", "ends":"2026-04-02T00:00:00Z" }
+• Spring Boot 3.x
 
-• Response: { "status":"created", "election_id":"school-2026" }
+• Spring Security (JWT / token auth)
 
-• POST /api/v1/elections/{id}/candidates
+• Spring Data JPA
 
-• Request: { "name": "Alice Smith" }
+• PostgreSQL
 
-• Response: { "status":"candidate_added", "candidate_id":"c1" }
+• Maven
 
-• POST /api/v1/elections/{id}/vote
+• Lombok
 
-• Auth: voter
+• iText / OpenPDF (PDF generation)
 
-• Request: { "voter_id":"1001", "ballot": { "choice": "c1" } }
-• Response: { "status":"recorded", "receipt":"sha256:..." }
+• OpenCSV (CSV export)
 
-• GET /api/v1/elections/{id}/results
+Frontend
 
-• Auth: admin or public (configurable)
+• React 18
 
-• Response: results JSON with counts and winner(s)
+• React Router
 
-• GET /api/v1/audit/receipt/{receipt_hash}
+• Axios
 
-• Returns whether record exists and timestamp.
+• CSS3 / Tailwind or Material UI (optional)
+
+Optional
+
+• Docker & docker-compose
+
+• Redis for caching
+
+• GitHub Actions for CI
+
+Prerequisites
+
+• Java 17+
+
+• Node.js 16+ and npm
+
+• PostgreSQL 12+
+
+• Maven 3.6+
+
+• Optional: Docker & docker-compose
+
+Quick Start
+
+1. Database
+
+• Create DB: CREATE DATABASE voting_db;
+
+• Ensure a DB user with access exists.
+
+2. Backend
+
+• cd backend
+
+• Edit src/main/resources/application.properties (or application.yml) with DB credentials and JWT secret: spring.datasource.url=jdbc:postgresql://localhost:5432/voting_db spring.datasource.username=YOUR_USER spring.datasource.password=YOUR_PASSWORD app.jwt.secret=YOUR_SECRET
+
+• Build & run: mvn clean install mvn spring-boot:run
+
+• Backend runs: http://localhost:8080/api
+
+3. Frontend
+
+• cd frontend
+
+• npm install
+
+• npm start
+
+• Frontend runs: http://localhost:3000
+
+User Guide
+
+Admin workflow
+
+• Create an election (id, name, type, start/end, anonymity)
+
+• Add candidates
+
+• Register/import voters (or enable open registration)
+
+• Configure voting rules (one-vote-per-voter, anonymous, verification)
+
+• Generate results once election closes
+
+• View audit trail; export results and logs
+
+Voter workflow
+
+• Register / Login (if required)
+
+• Browse active elections
+
+• Cast vote within election window
+
+• Receive a receipt (hash) containing {election_id, voter_token/anon_id, ballot_summary, timestamp, server_salt-hash}
+
+• Verify recorded vote using receipt verifier endpoint or public audit endpoint
+
+API Endpoints (examples)
+
+Base URL: http://localhost:8080/api
+
+Authentication
+
+• POST /auth/register
+
+• { "voterId": "1001", "name": "John", "password": "pass" }
+
+• POST /auth/login
+
+• { "voterId": "1001", "password": "pass" } -> { "token": "jwt..." }
+
+Elections
+
+• GET  /elections
+
+• POST /elections  (admin)
+
+• GET  /elections/{id}
+
+• PUT  /elections/{id} (admin)
+
+• DELETE /elections/{id} (admin)
+
+Candidates
+
+• GET /elections/{eid}/candidates
+
+• POST /elections/{eid}/candidates (admin)
+
+• PUT /candidates/{id} (admin)
+
+• DELETE /candidates/{id} (admin)
+
+Voters
+
+• GET /voters (admin)
+
+• POST /voters (admin or self-register)
+
+• PUT /voters/{id}
+
+Voting
+
+• POST /elections/{id}/vote
+
+• Auth: Bearer <token> (if required)
+
+• Body (identified election): { "voterId": "1001", "ballot": { "choice": "cand-1" } }
+
+• Body (anonymous election): { "anonId": "session-abc", "ballot": { "choice":"cand-1" } }
+
+• Response: { "status":"recorded", "receipt":"sha256:abcd...", "timestamp":"..." }
+
+Verification / Audit
+
+• GET /audit/receipt/{receipt_hash} -> { found: true, record: {...} }
+
+• GET /audit/election/{id}?limit=100
+
+Results
+
+• GET /elections/{id}/results  (public or admin - configurable)
+
+• GET /elections/{id}/results/export?format=csv|pdf
+
+Export
+
+• GET /export/election/{id}/csv
+
+• GET /export/election/{id}/pdf
+
 Voting Algorithms
 
-Provided examples: Plurality (first-past-the-post) and Instant-Runoff Voting (IRV).
+1. Plurality (First-Past-The-Post)
 
-• Plurality (single-choice)
+• For each recorded ballot: increment candidate count for the chosen candidate.
 
-• For each recorded ballot, increment candidate count for ballot.choice.
+• Winner: candidate with highest votes.
 
-• Winner = candidate with max votes.
+• Tie-handling: configurable (random, alphabetical, runoff).
 
-• Tie-handling: configurable (random, run-off, alphabetical).
+Pseudocode: counts = {} for vote in votes: counts[vote.choice] += 1 winner = argmax(counts)
 
-Pseudocode: counts = map(candidate -> 0) for vote in votes: counts[vote.choice] += 1 winner = argmax(counts)
+2. Instant-Runoff Voting (IRV) / Ranked Choice
 
-• Instant-Runoff Voting (IRV) / Ranked-choice
+• Round-based elimination:
 
-1. Count first-choice votes.
+• Count first choices.
 
-2. If any candidate >50%, they win.
+• If candidate >50%, winner.
 
-3. Else eliminate candidate(s) with fewest votes; reassign ballots with eliminated candidate to next preference.
+• Else eliminate candidate(s) with fewest votes; reassign ballots to next preference.
 
-4. Repeat until winner(s) decided or tie.
+• Repeat until winner or tie.
 
+Notes:
 
+• Validate ballots: preferences reference valid candidate IDs; no duplicates.
 
+• Configurable tie-break rules.
 
-Pseudocode (simplified): while True: counts = count_first_choices(ballots) if max(counts) > total_ballots / 2: return candidate_with_max eliminated = candidates_with_min_count(counts) if all candidates eliminated or tie: handle_tie() ballots = reassign_ballots(ballots, eliminated) remove eliminated from candidates
-Project Structure (suggested)
+• For large elections consider more advanced algorithms or optimizations.
 
-• README.md
+Security & Vote Verification
 
-• LICENSE
+• Authentication: JWT or session tokens; passwords stored hashed (bcrypt / Argon2).
 
-• .env.example
+• Receipt: SHA-256 hash over (election_id + timestamp + ballot_summary + server_salt). Return to voter for verification.
 
-• requirements.txt / package.json / pom.xml
+• Audit Log: Append-only JSON file or audit table. Optionally chain records with prev_hash to detect tampering.
 
-• src/
+• Privacy:
 
-• models/
+• Configure anonymous elections: store votes without voter_id, but issue anonymous receipt.
 
-• election.py
+• For identified elections: store voter_id with vote (careful of privacy requirements).
 
-• voter.py
+• Integrity:
 
-• candidate.py
+• Use DB transactions; persist audit record before returning receipt.
 
-• ballot.py
+• Use HTTPS for all client-server traffic.
 
-• services/
+Project Structure
 
-• election_service.py
+voting-system/ ├── backend/ │   ├── src/main/java/com/vote/ │   │   ├── config/ │   │   ├── controller/ │   │   ├── dto/ │   │   ├── entity/ │   │   ├── exception/ │   │   ├── repository/ │   │   └── service/ │   ├── src/main/resources/ │   │   └── application.properties │   └── pom.xml ├── frontend/ │   ├── public/ │   ├── src/ │   │   ├── pages/ │   │   ├── components/ │   │   ├── services/   # axios API wrapper │   │   └── App.js │   └── package.json ├── docs/ │   └── screenshots/ ├── scripts/ │   └── import-sample-data.sh ├── docker-compose.yml └── README.md
 
-• auth_service.py
+Database Schema
 
-• persistence_service.py
+Core Tables (relational model)
 
-• tally_service.py
-• api/
+-- voters voter_id   PK name email password_hash registered BOOLEAN
 
-• app.py
+-- elections election_id PK name type VARCHAR (single|ranked|anonymous) starts TIMESTAMP ends TIMESTAMP config JSON
 
-• routes.py
+-- candidates candidate_id PK election_id FK → elections name metadata JSON
 
-• cli/
+-- votes vote_id PK election_id FK → elections voter_id FK → voters (nullable if anonymous) ballot JSON           -- e.g., {"choice":"cand-1"} or {"preferences":["cand-1","cand-2"]} timestamp TIMESTAMP receipt_hash VARCHAR server_salt_id FK (optional)   -- for rotating salts
 
-• main.py
+-- audit_log (append-only) audit_id PK event_type VARCHAR   -- VOTE_CAST, ELECTION_CREATED, etc. payload JSON timestamp TIMESTAMP prev_hash VARCHAR    -- optional for chaining hash VARCHAR
 
-• utils/
+Indexes: votes(election_id), votes(receipt_hash), audit_log(hash)
 
-• crypto.py
+Screenshot Descriptions
 
-• validators.py
+(Place screenshots in docs/screenshots and reference them.)
 
-• file_helpers.py
+• dashboard.png — Admin dashboard with active elections, vote counts, recent audit events.
 
-• data/
+• create-election.png — Form to create elections including time window, anonymity toggle, allowed voters.
 
-• elections.json
+• candidates.png — Candidate management page (add/edit/delete).
 
-• votes.log (append-only)
+• cast-vote.png — Voter ballot view (single-choice or ranked interface).
 
-• users.json
+• results.png — Results page with bar chart and detailed counts.
 
-• audit.log
+• audit-viewer.png — Append-only audit log view with receipt verifier.
 
-• scripts/
+Troubleshooting
 
-• init_db.py
+Issue: Backend fails to start
 
-• import_sample_data.py
-• tests/
+• Check PostgreSQL is running and credentials in application.properties are correct.
 
-• test_election.py
+• Ensure port 8080 is free.
 
-• test_tally.py
+Issue: CORS errors from frontend
 
-• test_auth.py       
+• Add CORS config in backend (allow localhost:3000 during development).
 
+Issue: Votes rejected or not recorded
 
-#DATABASE SCHEMA
+• Confirm election window (starts/ends).
 
-Two supported persistence models:
+• Check voter registration and one-vote-per-voter config.
 
-1. File-based (JSON / append-only log)
+• Inspect backend logs and audit_log for errors during write.
 
-• elections.json: list of elections { "id":"school-2026", "name":"School Board 2026", "type":"single", "candidates":[{"id":"c1","name":"Alice"}], "starts":"...", "ends":"..." }
+Issue: Receipt verification mismatch
 
-• votes.log: append-only newline JSON per vote {"election_id":"school-2026","voter_id":"1001","ballot":{"choice":"c1"},"timestamp":"2026-01-01T12:00:00Z","receipt":"sha256:..."}
+• Ensure server_salt used to compute receipt is the same (and stored / rotation handled).
 
-• users.json: [{"voter_id":"1001","name":"John","password_hash":"$pbkdf2$...", "registered":true}]
+• Verify ballot_summary canonicalization (same ordering and normalization before hashing).
 
-2. SQL (example relational schema)
+Issue: Concurrent writes causing conflicts
 
-• voters (voter_id PK, name, password_hash, registered BOOLEAN, metadata JSON)
+• Use DB transactions / unique constraints to prevent duplicates.
 
-• elections (id PK, name, type, starts TIMESTAMP, ends TIMESTAMP, metadata JSON)
+• For high concurrency, prefer database backend over local files.
 
-• candidates (id PK, election_id FK, name, metadata JSON)
+Production Deployment
 
-• votes (id PK, election_id FK, voter_id FK NULLABLE, ballot JSON, timestamp, receipt_hash)
+Backend
 
-• audit_log (id PK, event_type, payload JSON, timestamp, prev_hash, hash)
-Exception Handling & Logging Notes
+• Build JAR: mvn clean package
 
-• Validate inputs and raise domain-specific exceptions (e.g., ElectionNotFoundError, InvalidBallotError, VotingWindowClosedError).
+• Run: java -jar target/vote-system-1.0.0.jar --spring.profiles.active=prod
 
-• Log all exception stack traces to a separate error log file.
+Frontend
 
-• Use retries or safe-fail behavior where appropriate (e.g., temporary DB outage).
+• Build static bundle: npm run build
 
-• Ensure audit.log writes are best-effort and recorded before returning receipt to voter (to avoid lost votes).
+• Serve build/ via nginx or static host.
 
+Docker (recommended)
 
-PRODUCTION DEPLOMENT
+• Provide Dockerfile for backend and frontend and docker-compose.yml:
 
-1. Use a real RDBMS (Postgres) rather than file-based storage for concurrency and durability.
+• Services: db (postgres), backend (app), frontend (nginx), optional redis.
 
-2. Environment variables:
+• Use volumes for persistent DB and audit logs.
 
-• SECRET_KEY, DB_URL, DATA_DIR, AUTH_MODE, LOG_LEVEL
+• Set secrets via environment or secret manager.
 
-3. Containerization:
+Security & Hardening
 
-• Provide a Dockerfile and docker-compose.yml:
+• Use HTTPS and secure cookies.
 
-• app service, db service, and volume mounts for persistent data.
+• Store secrets in secret manager (not in repo).
 
-4. Backups:
+• Rotate salts and tokens periodically.
 
-• Schedule DB backups and file backups for audit logs.
+• Limit access to admin endpoints with RBAC.
 
-• Maintain WORM (write once read many) or immutable storage for audit logs if possible.
+• Regular backups for DB and audit logs; consider WORM/immutable storage for audit.
 
-5. Security:
+Sample Data
 
-• Use HTTPS with valid certificates.
+SQL inserts (sample) INSERT INTO elections (election_id, name, type, starts, ends) VALUES ('school-2026', 'School Board 2026', 'single', '2026-04-01 00:00:00', '2026-04-01 23:59:59');
 
-• Restrict admin endpoints behind authentication and role checks.
+INSERT INTO candidates (candidate_id, election_id, name) VALUES ('cand-1','school-2026','Alice Smith'), ('cand-2','school-2026','Bob Jones');
 
-• Rotate secrets and store them in a secret manager.
+INSERT INTO voters (voter_id, name, email, password_hash, registered) VALUES ('1001','John Doe','john@example.com','$bcrypt$...$',true), ('1002','Jane Roe','jane@example.com','$bcrypt$...$',true);
 
-6. Scaling:
+Example vote record (votes table) vote_id: auto election_id: school-2026 voter_id: 1001 ballot: {"choice":"cand-1"} timestamp: 2026-04-01T10:05:00Z receipt_hash: sha256:abcd1234...
 
-• For read-heavy operations (results), use caching (Redis).
+Audit log (append-only)
 
-• For writes, ensure the DB handles concurrency; avoid local files as single source of truth.
+{ "audit_id": 1, "event_type": "VOTE_CAST", "payload": { "election_id": "school-2026", "voter_id": "1001", "receipt_hash": "sha256:abcd1234..." }, "timestamp": "2026-04-01T10:05:00Z", "prev_hash": null, "hash": "sha256:..." }
 
-7. Monitoring:
+Developer Notes
 
-• Add health check endpoint (/health).
+• Validate ballots strictly and normalize JSON before hashing (canonical order).
 
-• Integrate with Prometheus / Grafana for metrics (requests, errors, vote rates).
+• Persist audit entry before returning receipt (atomicity).
 
-8. High integrity:
+• For anonymous elections, decouple authentication from ballot record (store anon token only).
 
-• Consider hardware security modules (HSM) for cryptographic operations.
+• Add unit & integration tests: vote flows, duplicate prevention, tally algorithms.
 
-• Add audit trail immutability (append-only logs
+• Consider separate read model for results to optimize reporting.
 
+Contributing
 
+• Fork, branch, add tests, run the test suite, open a PR describing changes.
 
-#Contributing
+• Follow Java/React coding standards and include unit tests for business logic (tallying, receipt generation).
 
-• Fork, create a branch, make changes, add tests, and submit a PR.
-
-• Follow code style and include unit tests for new behavior.
-
-• Use descriptive commit messages and link issues.
