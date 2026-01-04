@@ -341,7 +341,7 @@ voting-system/
 │
 ├── docker-compose.yml                      # Docker services configuration
 │
-└── README.md                               # Project overview and setup instructions
+└── README.md                               # Project overview and setup instructions 
 
 
 ✅Database Schema
