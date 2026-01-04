@@ -48,24 +48,24 @@ User Guide (high level)
 
 • Admins:
 
-• Create election: define name, type (single/irv), candidate list, start/end times.
+   • Create election: define name, type (single/irv), candidate list, start/end times.
 
-• Add or remove candidates (before election opens).
+   • Add or remove candidates (before election opens).
 
-• Tally results once election is closed.
+   • Tally results once election is closed.
 
 • Voters:
 
-• Register (if required) and authenticate.
+   • Register (if required) and authenticate.
 
-• Cast vote during election window.
+    • Cast vote during election window.
 
-• Receive a receipt (hash) to verify vote was recorded.
+   • Receive a receipt (hash) to verify vote was recorded.
 
 • Verification:
 
-• Voter checks receipt hash against the audit log endpoint to confirm presence.
-API Endpoints
+  • Voter checks receipt hash against the audit log endpoint to confirm presence.
+    API Endpoints
 
 All endpoints respond JSON and use Authorization: Bearer <token> when required.
 
@@ -134,6 +134,9 @@ Pseudocode: counts = map(candidate -> 0) for vote in votes: counts[vote.choice] 
 3. Else eliminate candidate(s) with fewest votes; reassign ballots with eliminated candidate to next preference.
 
 4. Repeat until winner(s) decided or tie.
+
+
+
 
 Pseudocode (simplified): while True: counts = count_first_choices(ballots) if max(counts) > total_ballots / 2: return candidate_with_max eliminated = candidates_with_min_count(counts) if all candidates eliminated or tie: handle_tie() ballots = reassign_ballots(ballots, eliminated) remove eliminated from candidates
 Project Structure (suggested)
@@ -207,7 +210,9 @@ Project Structure (suggested)
 • test_tally.py
 
 • test_auth.py       
-Database Schema
+
+
+#DATABASE SCHEMA
 
 Two supported persistence models:
 
@@ -239,7 +244,9 @@ Exception Handling & Logging Notes
 • Use retries or safe-fail behavior where appropriate (e.g., temporary DB outage).
 
 • Ensure audit.log writes are best-effort and recorded before returning receipt to voter (to avoid lost votes).
-Production Deployment
+
+
+PRODUCTION DEPLOMENT
 
 1. Use a real RDBMS (Postgres) rather than file-based storage for concurrency and durability.
 
@@ -285,7 +292,9 @@ Production Deployment
 
 • Add audit trail immutability (append-only logs
 
-Contributing
+
+
+#Contributing
 
 • Fork, create a branch, make changes, add tests, and submit a PR.
 
