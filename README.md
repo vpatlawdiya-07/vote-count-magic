@@ -129,23 +129,23 @@ Quick Start
 
 2. Backend
 
-• cd backend
+    • cd backend
 
-• Edit src/main/resources/application.properties (or application.yml) with DB credentials and JWT secret: spring.datasource.url=jdbc:postgresql://localhost:5432/voting_db spring.datasource.username=YOUR_USER spring.datasource.password=YOUR_PASSWORD app.jwt.secret=YOUR_SECRET
+   • Edit src/main/resources/application.properties (or application.yml) with DB credentials and JWT secret:   spring.datasource.url=jdbc:postgresql://localhost:5432/voting_db spring.datasource.username=YOUR_USER spring.datasource.password=YOUR_PASSWORD app.jwt.secret=YOUR_SECRET
 
-• Build & run: mvn clean install mvn spring-boot:run
+   • Build & run: mvn clean install mvn spring-boot:run
 
-• Backend runs:
+   • Backend runs:
 
 3. Frontend
 
-• cd frontend
+      • cd frontend
+ 
+      • npm install
 
-• npm install
+      • npm start
 
-• npm start
-
-• Frontend runs: 
+      • Frontend runs: 
 
 User Guide
 
@@ -175,7 +175,7 @@ Voter workflow
 
 • Verify recorded vote using receipt verifier endpoint or public audit endpoint
 
-API Endpoints (examples)
+✅API Endpoints 
 
 
 
@@ -249,7 +249,7 @@ Export
 
 • GET /export/election/{id}/pdf
 
-Voting Algorithms
+✅Voting Algorithms
 
 1. Plurality (First-Past-The-Post)
 
@@ -301,11 +301,50 @@ Security & Vote Verification
 
 • Use HTTPS for all client-server traffic.
 
-Project Structure
+✅PROJECT STRUCTURE
 
-voting-system/ ├── backend/ │   ├── src/main/java/com/vote/ │   │   ├── config/ │   │   ├── controller/ │   │   ├── dto/ │   │   ├── entity/ │   │   ├── exception/ │   │   ├── repository/ │   │   └── service/ │   ├── src/main/resources/ │   │   └── application.properties │   └── pom.xml ├── frontend/ │   ├── public/ │   ├── src/ │   │   ├── pages/ │   │   ├── components/ │   │   ├── services/   # axios API wrapper │   │   └── App.js │   └── package.json ├── docs/ │   └── screenshots/ ├── scripts/ │   └── import-sample-data.sh ├── docker-compose.yml └── README.md
+voting-system/
+│
+├── backend/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/
+│   │   │   │   └── com/
+│   │   │   │       └── vote/
+│   │   │   │           ├── config/        # Application configuration (Security, CORS, etc.)
+│   │   │   │           ├── controller/    # REST API controllers
+│   │   │   │           ├── dto/           # Data Transfer Objects
+│   │   │   │           ├── entity/        # JPA entities / database models
+│   │   │   │           ├── exception/     # Custom exception handling
+│   │   │   │           ├── repository/    # Database repositories (JPA)
+│   │   │   │           └── service/       # Business logic layer
+│   │   │   └── resources/
+│   │   │       └── application.properties # Backend configuration
+│   │
+│   └── pom.xml                             # Maven dependencies and build configuration
+│
+├── frontend/
+│   ├── public/                             # Static public assets
+│   ├── src/
+│   │   ├── pages/                          # Application pages/views
+│   │   ├── components/                     # Reusable UI components
+│   │   ├── services/                       # Axios API service layer
+│   │   └── App.js                          # Root React component
+│   │
+│   └── package.json                        # Frontend dependencies and scripts
+│
+├── docs/
+│   └── screenshots/                        # Project screenshots for documentation
+│
+├── scripts/
+│   └── import-sample-data.sh               # Script to import sample data
+│
+├── docker-compose.yml                      # Docker services configuration
+│
+└── README.md                               # Project overview and setup instructions
 
-Database Schema
+
+✅Database Schema
 
 Core Tables (relational model)
 
@@ -321,9 +360,8 @@ Core Tables (relational model)
 
 Indexes: votes(election_id), votes(receipt_hash), audit_log(hash)
 
-Screenshot Descriptions
+❇️Screenshot Descriptions
 
-(Place screenshots in docs/screenshots and reference them.)
 
 • dashboard.png — Admin dashboard with active elections, vote counts, recent audit events.
 
@@ -337,7 +375,7 @@ Screenshot Descriptions
 
 • audit-viewer.png — Append-only audit log view with receipt verifier.
 
-Troubleshooting
+❇️Troubleshooting
 
 Issue: Backend fails to start
 
@@ -405,21 +443,21 @@ Security & Hardening
 
 • Regular backups for DB and audit logs; consider WORM/immutable storage for audit.
 
-Sample Data
+❇️Sample Data
 
-SQL inserts (sample) INSERT INTO elections (election_id, name, type, starts, ends) VALUES ('school-2026', 'School Board 2026', 'single', '2026-04-01 00:00:00', '2026-04-01 23:59:59');
+ SQL inserts (sample) INSERT INTO elections (election_id, name, type, starts, ends) VALUES ('school-2026', 'School Board 2026', 'single', '2026-04-01      00:00:00', '2026-04-01 23:59:59');
 
-INSERT INTO candidates (candidate_id, election_id, name) VALUES ('cand-1','school-2026','Alice Smith'), ('cand-2','school-2026','Bob Jones');
+  INSERT INTO candidates (candidate_id, election_id, name) VALUES ('cand-1','school-2026','Alice Smith'), ('cand-2','school-2026','Bob Jones');
 
-INSERT INTO voters (voter_id, name, email, password_hash, registered) VALUES ('1001','John Doe','john@example.com','$bcrypt$...$',true), ('1002','Jane Roe','jane@example.com','$bcrypt$...$',true);
+  INSERT INTO voters (voter_id, name, email, password_hash, registered) VALUES ('1001','John Doe','john@example.com','$bcrypt$...$',true), ('1002','Jane               Roe','jane@example.com','$bcrypt$...$',true);
 
-Example vote record (votes table) vote_id: auto election_id: school-2026 voter_id: 1001 ballot: {"choice":"cand-1"} timestamp: 2026-04-01T10:05:00Z receipt_hash: sha256:abcd1234...
+  Example vote record (votes table) vote_id: auto election_id: school-2026 voter_id: 1001 ballot: {"choice":"cand-1"} timestamp: 2026-04-01T10:05:00Z               receipt_hash: sha256:abcd1234...
 
 Audit log (append-only)
 
 { "audit_id": 1, "event_type": "VOTE_CAST", "payload": { "election_id": "school-2026", "voter_id": "1001", "receipt_hash": "sha256:abcd1234..." }, "timestamp": "2026-04-01T10:05:00Z", "prev_hash": null, "hash": "sha256:..." }
 
-Developer Notes
+❇️Developer Notes
 
 • Validate ballots strictly and normalize JSON before hashing (canonical order).
 
@@ -431,7 +469,7 @@ Developer Notes
 
 • Consider separate read model for results to optimize reporting.
 
-Contributing
+❇️Contributing
 
 • Fork, branch, add tests, run the test suite, open a PR describing changes.
 
