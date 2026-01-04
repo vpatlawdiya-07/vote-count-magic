@@ -135,7 +135,7 @@ Quick Start
 
 • Build & run: mvn clean install mvn spring-boot:run
 
-• Backend runs: http://localhost:8080/api
+• Backend runs:
 
 3. Frontend
 
@@ -145,7 +145,7 @@ Quick Start
 
 • npm start
 
-• Frontend runs: http://localhost:3000
+• Frontend runs: 
 
 User Guide
 
@@ -177,7 +177,7 @@ Voter workflow
 
 API Endpoints (examples)
 
-Base URL: http://localhost:8080/api
+
 
 Authentication
 
